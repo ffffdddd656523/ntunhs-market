@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>北護小物販賣網站</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:#f8fafc;}
+    button{font-family:inherit;}
+    input,select,textarea{font-family:inherit;}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:#f1f5f9;}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const PRODUCTS = [
+  { id:"1", image:"https://images.unsplash.com/photo-1588912914017-923900a34710?w=600", title:"護理學原理 第八版", price:350, category:"書籍", description:"九成新，無畫記，適合大一使用", date:"2天前", seller:"王小明", dept:"護理系" },
+  { id:"2", image:"https://images.unsplash.com/photo-1622799336313-e0cf42fc6180?w=600", title:"MAC 口紅套組", price:800, category:"彩妝", description:"全新未拆封，朋友送的用不到", date:"3天前", seller:"林小芳", dept:"護理系" },
+  { id:"3", image:"https://images.unsplash.com/photo-1646508905261-d3bd7e9afed4?w=600", title:"Uniqlo 白色襯衫", price:200, category:"衣服", description:"M號，實習用只穿過3次", date:"1週前", seller:"張大明", dept:"公衛系" },
+  { id:"4", image:"https://images.unsplash.com/photo-1761208158970-b0191292eb84?w=600", title:"宿舍小電扇", price:150, category:"生活用品", description:"功能正常，搬家出清", date:"5天前", seller:"陳小美", dept:"長照系" },
+  { id:"5", image:"https://images.unsplash.com/photo-1588912914017-923900a34710?w=600", title:"解剖學講義", price:250, category:"書籍", description:"含筆記整理，八成新", date:"6天前", seller:"王小明", dept:"護理系" },
+  { id:"6", image:"https://images.unsplash.com/photo-1622799336313-e0cf42fc6180?w=600", title:"開架彩妝組", price:300, category:"彩妝", description:"眼影盤、腮紅，9成新", date:"1週前", seller:"李小華", dept:"護理系" },
+  { id:"7", image:"https://images.unsplash.com/photo-1646508905261-d3bd7e9afed4?w=600", title:"實習白褲", price:180, category:"衣服", description:"L號，洗過兩次，幾乎全新", date:"5天前", seller:"陳小美", dept:"長照系" },
+  { id:"8", image:"https://images.unsplash.com/photo-1761208158970-b0191292eb84?w=600", title:"桌上型檯燈", price:200, category:"生活用品", description:"LED護眼檯燈，宿舍用", date:"1週前", seller:"張大明", dept:"公衛系" },
+];
+
+const JOBS = [
+  { id:"j1", title:"徵咖啡廳工讀生", type:"校內工讀", location:"學生餐廳旁", salary:"時薪 NT$ 190", hours:"彈性排班", description:"校內咖啡廳徵工讀生，工作內容包含飲料製作、收銀、環境整理。", contact:"Line: cafe123", date:"1天前", poster:"學生餐廳" },
+  { id:"j2", title:"圖書館助理", type:"校內工讀", location:"圖書館", salary:"時薪 NT$ 185", hours:"週一至週五 14:00-17:00", description:"協助圖書上架、整理、借還書作業。", contact:"Email: library@ntunhs.edu.tw", date:"2天前", poster:"圖書館" },
+  { id:"j3", title:"家教老師（數學、英文）", type:"校外兼職", location:"北投區", salary:"時薪 NT$ 500-800", hours:"週末或平日晚上", description:"徵國中數學、英文家教老師，需有耐心，可長期配合。", contact:"手機：0912-345-678", date:"3天前", poster:"家長" },
+  { id:"j4", title:"飲料店工讀生", type:"校外兼職", location:"石牌捷運站附近", salary:"時薪 NT$ 190", hours:"排班制，可配合課表", description:"手搖飲料店徵工讀生，需站立工作，會教學。", contact:"Line: drink2024", date:"4天前", poster:"飲料店" },
+  { id:"j5", title:"實驗室助理", type:"實習機會", location:"護理系實驗室", salary:"月薪 NT$ 8,000", hours:"每週 10 小時", description:"協助教授進行研究，整理實驗數據，適合對研究有興趣的學生。", contact:"Email: prof.wang@ntunhs.edu.tw", date:"5天前", poster:"王教授" },
+  { id:"j6", title:"便利商店大夜班", type:"校外兼職", location:"學校附近7-11", salary:"時薪 NT$ 220", hours:"23:00-07:00", description:"徵夜班工讀生，工作環境單純，適合夜貓子。", contact:"手機：0987-654-321", date:"1週前", poster:"便利商店" },
+];
+
+const COURSES = [
+  { id:"c1", title:"週三2-4換週五2-4", type:"必修課程", courseName:"解剖學", currentTime:"週三 13:10-15:00", desiredTime:"週五 13:10-15:00", reason:"週三有其他事情無法上課", contact:"Line: student123", date:"1天前", poster:"李小華", department:"護理系" },
+  { id:"c2", title:"生理學換時段", type:"必修課程", courseName:"生理學", currentTime:"週一 10:10-12:00", desiredTime:"週二或週四同時段", reason:"想調整課表，配合打工時間", contact:"Email: student002@ntunhs.edu.tw", date:"2天前", poster:"張大明", department:"護理系" },
+  { id:"c3", title:"週四選修課換週二", type:"選修課程", courseName:"健康促進", currentTime:"週四 15:10-17:00", desiredTime:"週二 15:10-17:00", reason:"週四需要實習，希望換到週二", contact:"手機：0912-345-678", date:"3天前", poster:"王小美", department:"公衛系" },
+  { id:"c4", title:"藥理學時段交換", type:"必修課程", courseName:"藥理學", currentTime:"週五 08:10-10:00", desiredTime:"週三 08:10-10:00", reason:"週五早上無法到校", contact:"Line: course2024", date:"4天前", poster:"陳小明", department:"護理系" },
+  { id:"c5", title:"通識課程換時段", type:"選修課程", courseName:"音樂欣賞", currentTime:"週三 18:30-20:20", desiredTime:"週一或週二晚上", reason:"週三晚上有社團活動", contact:"Email: student005@ntunhs.edu.tw", date:"5天前", poster:"林小芳", department:"長照系" },
+];
+
+const CHATS_INIT = [
+  { id:"1", name:"李小華", color:"#10B981", lastMessage:"好的，那我們約明天中午面交", time:"10:30", unread:2,
+    messages:[
+      {id:"m1", sender:"other", text:"你好，請問這本書還有嗎？", time:"10:15"},
+      {id:"m2", sender:"me", text:"有的！九成新，無畫記", time:"10:18"},
+      {id:"m3", sender:"other", text:"太好了！可以約面交嗎？", time:"10:25"},
+      {id:"m4", sender:"me", text:"可以啊，明天中午12點在學生餐廳可以嗎？", time:"10:27"},
+      {id:"m5", sender:"other", text:"好的，那我們約明天中午面交", time:"10:30"},
+    ]
+  },
+  { id:"2", name:"張大明", color:"#8B5CF6", lastMessage:"這本書還在嗎？", time:"昨天", unread:0,
+    messages:[
+      {id:"m1", sender:"other", text:"這本書還在嗎？", time:"昨天"},
+      {id:"m2", sender:"me", text:"還在喔！", time:"昨天"},
+    ]
+  },
+  { id:"3", name:"陳小美", color:"#EC4899", lastMessage:"謝謝你！", time:"2天前", unread:0,
+    messages:[
+      {id:"m1", sender:"me", text:"那我們約週五交貨好嗎？", time:"2天前"},
+      {id:"m2", sender:"other", text:"謝謝你！", time:"2天前"},
+    ]
+  },
+];
+
+const GROUP_MSGS_INIT = [
+  { id:"g1", sender:"李小華", color:"#10B981", text:"大家好！有人需要生理學課本嗎？", time:"09:15", isMe:false },
+  { id:"g2", sender:"張大明", color:"#8B5CF6", text:"請問有人要換課嗎？我想把週三的課換成週五", time:"09:30", isMe:false },
+  { id:"g3", sender:"我", color:"#0EA5E9", text:"我有一些二手衣服要賣，有興趣的可以私訊我～", time:"10:00", isMe:true },
+  { id:"g4", sender:"陳小美", color:"#EC4899", text:"校內咖啡廳徵工讀生，有興趣的可以問我", time:"10:15", isMe:false },
+  { id:"g5", sender:"王小明", color:"#F59E0B", text:"謝謝分享！", time:"10:20", isMe:false },
+];
+
+// Icons
+const Ic = ({d,size=20,fill="none",stroke="currentColor",sw=2}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+    {Array.isArray(d)?d.map((p,i)=><path key={i} d={p}/>):<path d={d}/>}
+  </svg>
+);
+const SearchIcon = () => <Ic d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>;
+const MenuIcon = () => <Ic d="M3 12h18M3 6h18M3 18h18"/>;
+const XIcon = () => <Ic d="M18 6L6 18M6 6l12 12"/>;
+const HeartIcon = ({filled}) => <Ic d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill={filled?"#ef4444":"none"} stroke={filled?"#ef4444":"currentColor"}/>;
+const SendIcon = () => <Ic d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>;
+const UserIcon = () => <Ic d={["M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2","M12 11a4 4 0 100-8 4 4 0 000 8z"]}/>;
+const LogInIcon = () => <Ic d={["M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4","M10 17l5-5-5-5","M15 12H3"]}/>;
+const BriefcaseIcon = () => <Ic d={["M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z","M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"]}/>;
+const RefreshIcon = () => <Ic d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>;
+const ShoppingBagIcon = () => <Ic d={["M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z","M3 6h18","M16 10a4 4 0 01-8 0"]}/>;
+const FilterIcon = () => <Ic d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>;
+const UploadIcon = () => <Ic d={["M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4","M17 8l-5-5-5 5","M12 3v12"]}/>;
+const ClockIcon = () => <Ic d={["M12 2a10 10 0 100 20A10 10 0 0012 2z","M12 6v6l4 2"]}/>;
+const MessageCircleIcon = () => <Ic d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>;
+const MailIcon = () => <Ic d={["M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z","M22 6l-10 7L2 6"]}/>;
+const MapPinIcon = () => <Ic d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 10a2 2 0 100-4 2 2 0 000 4z"/>;
+const DollarIcon = () => <Ic d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>;
+const ImageIcon = () => <Ic d={["M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z","M12 17a4 4 0 100-8 4 4 0 000 8z"]}/>;
+const UsersIcon = () => <Ic d={["M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2","M9 11a4 4 0 100-8 4 4 0 000 8z","M23 21v-2a4 4 0 00-3-3.87","M16 3.13a4 4 0 010 7.75"]}/>;
+const EditIcon = () => <Ic d={["M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7","M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"]}/>;
+const Trash2Icon = () => <Ic d={["M3 6h18","M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2","M10 11v6","M14 11v6"]}/>;
+
+function Avatar({name, color, size=40}) {
+  return (
+    <div style={{width:size,height:size,borderRadius:"50%",background:color||"#0EA5E9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <span style={{color:"#fff",fontSize:size*0.38,fontWeight:700}}>{name?name[0]:"?"}</span>
+    </div>
+  );
+}
+
+function Badge({children, color="#0EA5E9", bg="#e0f2fe"}) {
+  return <span style={{display:"inline-block",padding:"2px 10px",borderRadius:99,background:bg,color,fontSize:12,fontWeight:600}}>{children}</span>;
+}
+
+function CategoryBadge({cat}) {
+  const map = {"書籍":["#1d4ed8","#dbeafe"],"彩妝":["#be185d","#fce7f3"],"衣服":["#7c3aed","#ede9fe"],"生活用品":["#065f46","#d1fae5"]};
+  const [c,b] = map[cat]||["#374151","#f3f4f6"];
+  return <Badge color={c} bg={b}>{cat}</Badge>;
+}
+
+function ProductCard({product, onClick, onFavorite, isFav}) {
+  return (
+    <div onClick={()=>onClick(product)}
+      style={{background:"#fff",borderRadius:16,boxShadow:"0 2px 12px rgba(0,0,0,.07)",overflow:"hidden",cursor:"pointer",transition:"transform .18s,box-shadow .18s"}}
+      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 8px 28px rgba(0,0,0,.13)"}}
+      onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,.07)"}}>
+      <div style={{position:"relative",aspectRatio:"4/3",overflow:"hidden",background:"#f1f5f9"}}>
+        <img src={product.image} alt={product.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        <button onClick={e=>{e.stopPropagation();onFavorite(product.id)}}
+          style={{position:"absolute",top:10,right:10,width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,.9)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <HeartIcon filled={isFav}/>
+        </button>
+      </div>
+      <div style={{padding:"14px 16px"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+          <CategoryBadge cat={product.category}/>
+          <span style={{fontSize:11,color:"#94a3b8",display:"flex",alignItems:"center",gap:3}}><ClockIcon/>{product.date}</span>
+        </div>
+        <h3 style={{margin:"0 0 6px",fontSize:15,fontWeight:600,color:"#1e293b",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{product.title}</h3>
+        <p style={{margin:"0 0 10px",fontSize:13,color:"#64748b",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{product.description}</p>
+        <div style={{fontSize:18,fontWeight:700,color:"#0ea5e9"}}>NT$ {product.price}</div>
+      </div>
+    </div>
+  );
+}
+
+function Navbar({page, setPage, isLoggedIn, setIsLoggedIn}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const links = [
+    {id:"home",label:"首頁"},{id:"products",label:"商品分類"},{id:"jobs",label:"打工資訊"},
+    {id:"courses",label:"換課資訊"},{id:"create",label:"發布貼文"},{id:"group-chat",label:"北護大群"},
+  ];
+  return (
+    <nav style={{background:"#fff",boxShadow:"0 1px 8px rgba(0,0,0,.06)",position:"sticky",top:0,zIndex:100}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
+        <button onClick={()=>setPage("home")} style={{display:"flex",alignItems:"center",gap:10,border:"none",background:"none",cursor:"pointer"}}>
+          <div style={{width:40,height:40,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{color:"#fff",fontSize:18,fontWeight:700}}>北</span>
+          </div>
+          <span style={{fontSize:16,fontWeight:700,color:"#1e293b"}}>北護小物販賣</span>
+        </button>
+        <div style={{display:"flex",alignItems:"center",gap:4}}>
+          {links.map(l=>(
+            <button key={l.id} onClick={()=>{setPage(l.id);setMobileOpen(false)}}
+              style={{border:"none",background:"none",cursor:"pointer",padding:"6px 10px",borderRadius:8,color:page===l.id?"#0ea5e9":"#475569",fontWeight:page===l.id?700:500,fontSize:13}}>
+              {l.label}
+            </button>
+          ))}
+          {isLoggedIn
+            ? <button onClick={()=>setPage("profile")} style={{display:"flex",alignItems:"center",gap:5,border:"none",background:page==="profile"?"#e0f2fe":"none",color:"#0ea5e9",cursor:"pointer",padding:"6px 12px",borderRadius:8,fontWeight:600,fontSize:13}}><UserIcon/>會員中心</button>
+            : <button onClick={()=>setPage("login")} style={{display:"flex",alignItems:"center",gap:6,background:"#0ea5e9",color:"#fff",border:"none",cursor:"pointer",padding:"8px 16px",borderRadius:8,fontWeight:600,fontSize:13}}><LogInIcon/>登入</button>
+          }
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function Footer({setPage}) {
+  return (
+    <footer style={{background:"#1e293b",color:"#94a3b8",padding:"40px 20px 24px",marginTop:60}}>
+      <div style={{maxWidth:1200,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:32,marginBottom:32}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+              <div style={{width:36,height:36,background:"#0ea5e9",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{color:"#fff",fontWeight:700}}>北</span>
+              </div>
+              <span style={{color:"#f1f5f9",fontWeight:700,fontSize:15}}>北護小物販賣網站</span>
+            </div>
+            <p style={{fontSize:13,lineHeight:1.8}}>專為臺北護理健康大學學生設計的二手交易與資訊交流平台。</p>
+          </div>
+          <div>
+            <h4 style={{color:"#f1f5f9",marginBottom:12,fontSize:14}}>快速連結</h4>
+            {["products","jobs","courses","create"].map((p,i)=>(
+              <button key={p} onClick={()=>setPage(p)} style={{display:"block",background:"none",border:"none",color:"#94a3b8",cursor:"pointer",padding:"3px 0",fontSize:13}}>
+                {["商品分類","打工資訊","換課資訊","發布貼文"][i]}
+              </button>
+            ))}
+          </div>
+          <div>
+            <h4 style={{color:"#f1f5f9",marginBottom:12,fontSize:14}}>聯絡我們</h4>
+            <p style={{fontSize:13}}>ntunhs.market@ntunhs.edu.tw</p>
+            <p style={{fontSize:13,marginTop:6}}>臺北市北投區明德路365號</p>
+          </div>
+        </div>
+        <div style={{borderTop:"1px solid #334155",paddingTop:20,textAlign:"center",fontSize:12}}>
+          © 2026 北護小物販賣網站。本平台僅限北護大學在學學生使用。
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function HomePage({setPage, products, favorites, toggleFav, showProduct}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const featuredCats = [
+    {label:"商品分類",icon:<ShoppingBagIcon/>,color:"#0ea5e9",bg:"#e0f2fe",border:"#0ea5e9",page:"products",desc:"二手書、彩妝、衣服、生活用品"},
+    {label:"打工資訊",icon:<BriefcaseIcon/>,color:"#f97316",bg:"#ffedd5",border:"#f97316",page:"jobs",desc:"校內外工讀、兼職機會"},
+    {label:"換課資訊",icon:<RefreshIcon/>,color:"#22c55e",bg:"#dcfce7",border:"#22c55e",page:"courses",desc:"課程時段交換需求"},
+  ];
+  const features = [
+    {icon:<FilterIcon/>,color:"#0ea5e9",bg:"#e0f2fe",title:"分類清楚",desc:"商品、打工、換課資訊分門別類"},
+    {icon:<SearchIcon/>,color:"#22c55e",bg:"#dcfce7",title:"搜尋方便",desc:"關鍵字搜尋，快速找到資訊"},
+    {icon:<BriefcaseIcon/>,color:"#8b5cf6",bg:"#ede9fe",title:"校園專用",desc:"僅限北護學生使用"},
+    {icon:<MessageCircleIcon/>,color:"#f59e0b",bg:"#fef3c7",title:"聊天室聯絡",desc:"直接聯絡賣家"},
+  ];
+  return (
+    <div>
+      <section style={{background:"linear-gradient(135deg,#0284c7 0%,#0369a1 60%,#075985 100%)",color:"#fff",padding:"72px 20px 100px"}}>
+        <div style={{maxWidth:760,margin:"0 auto",textAlign:"center"}}>
+          <h1 style={{fontSize:"clamp(24px,4vw,40px)",fontWeight:800,marginBottom:12}}>讓北護學生更方便交流與交易</h1>
+          <p style={{fontSize:16,color:"#bae6fd",marginBottom:32}}>二手書、彩妝、衣服、打工與換課資訊，一站整合</p>
+          <div style={{display:"flex",gap:10,maxWidth:540,margin:"0 auto"}}>
+            <div style={{flex:1,position:"relative"}}>
+              <div style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",color:"#94a3b8"}}><SearchIcon/></div>
+              <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&setPage("products")}
+                placeholder="搜尋商品、打工、換課資訊..."
+                style={{width:"100%",padding:"13px 14px 13px 44px",borderRadius:10,border:"none",fontSize:15,outline:"none",boxSizing:"border-box"}}/>
+            </div>
+            <button onClick={()=>setPage("visual-search")}
+              style={{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.3)",color:"#fff",padding:"0 18px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600}}>
+              <ImageIcon/>以圖搜圖
+            </button>
+          </div>
+          <button onClick={()=>setPage("products")}
+            style={{marginTop:16,background:"rgba(255,255,255,.18)",border:"1px solid rgba(255,255,255,.35)",color:"#fff",padding:"10px 28px",borderRadius:10,cursor:"pointer",fontSize:15,fontWeight:600}}>
+            開始瀏覽 →
+          </button>
+        </div>
+      </section>
+      <div style={{maxWidth:1200,margin:"-48px auto 0",padding:"0 20px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:20}}>
+          {featuredCats.map(c=>(
+            <button key={c.page} onClick={()=>setPage(c.page)}
+              style={{background:"#fff",borderRadius:18,padding:"28px 24px",boxShadow:"0 4px 20px rgba(0,0,0,.08)",border:`2px solid ${c.border}`,cursor:"pointer",textAlign:"center",transition:"transform .18s"}}
+              onMouseEnter={e=>e.currentTarget.style.transform="translateY(-4px)"}
+              onMouseLeave={e=>e.currentTarget.style.transform=""}>
+              <div style={{width:52,height:52,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",color:c.color}}>{c.icon}</div>
+              <h3 style={{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:6}}>{c.label}</h3>
+              <p style={{fontSize:13,color:"#64748b"}}>{c.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+      <section style={{maxWidth:1200,margin:"56px auto 0",padding:"0 20px"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+          <h2 style={{fontSize:22,fontWeight:800,color:"#1e293b"}}>最新貼文</h2>
+          <button onClick={()=>setPage("products")} style={{background:"none",border:"none",color:"#0ea5e9",cursor:"pointer",fontWeight:600,fontSize:14}}>查看全部 →</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:20}}>
+          {products.slice(0,6).map(p=><ProductCard key={p.id} product={p} onClick={showProduct} onFavorite={toggleFav} isFav={favorites.has(p.id)}/>)}
+        </div>
+      </section>
+      <section style={{maxWidth:1200,margin:"56px auto 0",padding:"0 20px"}}>
+        <h2 style={{fontSize:22,fontWeight:800,color:"#1e293b",textAlign:"center",marginBottom:32}}>網站特色</h2>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:20}}>
+          {features.map(f=>(
+            <div key={f.title} style={{background:"#fff",borderRadius:16,padding:"24px 20px",textAlign:"center",boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+              <div style={{width:48,height:48,borderRadius:"50%",background:f.bg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",color:f.color}}>{f.icon}</div>
+              <h3 style={{fontSize:15,fontWeight:700,color:"#1e293b",marginBottom:8}}>{f.title}</h3>
+              <p style={{fontSize:13,color:"#64748b",lineHeight:1.7}}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ProductListPage({products, favorites, toggleFav, showProduct}) {
+  const [search, setSearch] = useState("");
+  const [cat, setCat] = useState("all");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [sort, setSort] = useState("latest");
+  let filtered = products.filter(p=>{
+    if(cat!=="all"&&p.category!==cat) return false;
+    if(search&&!p.title.includes(search)&&!p.description.includes(search)) return false;
+    if(priceMin&&p.price<+priceMin) return false;
+    if(priceMax&&p.price>+priceMax) return false;
+    return true;
+  });
+  if(sort==="price-low") filtered=[...filtered].sort((a,b)=>a.price-b.price);
+  if(sort==="price-high") filtered=[...filtered].sort((a,b)=>b.price-a.price);
+  return (
+    <div style={{maxWidth:1200,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>商品分類</h1>
+      <p style={{color:"#64748b",marginBottom:28}}>瀏覽二手書、彩妝、衣服與生活用品</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:24,alignItems:"flex-start"}}>
+        <aside style={{width:220,flexShrink:0,background:"#fff",borderRadius:16,padding:"24px 20px",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20,color:"#1e293b",fontWeight:700}}><FilterIcon/>篩選條件</div>
+          <label style={{fontSize:13,color:"#475569",display:"block",marginBottom:6}}>關鍵字</label>
+          <div style={{position:"relative",marginBottom:18}}>
+            <div style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#94a3b8"}}><SearchIcon/></div>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋..."
+              style={{width:"100%",padding:"8px 8px 8px 36px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+          </div>
+          <label style={{fontSize:13,color:"#475569",display:"block",marginBottom:6}}>類別</label>
+          <select value={cat} onChange={e=>setCat(e.target.value)} style={{width:"100%",padding:"8px 12px",border:"1px solid #e2e8f0",borderRadius:8,marginBottom:18,fontSize:13,outline:"none"}}>
+            <option value="all">全部商品</option>
+            <option value="書籍">書籍</option>
+            <option value="彩妝">彩妝</option>
+            <option value="衣服">衣服</option>
+            <option value="生活用品">生活用品</option>
+          </select>
+          <label style={{fontSize:13,color:"#475569",display:"block",marginBottom:6}}>價格區間</label>
+          <div style={{display:"flex",gap:8,marginBottom:18}}>
+            <input type="number" placeholder="最低" value={priceMin} onChange={e=>setPriceMin(e.target.value)} style={{width:"50%",padding:"8px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,outline:"none"}}/>
+            <input type="number" placeholder="最高" value={priceMax} onChange={e=>setPriceMax(e.target.value)} style={{width:"50%",padding:"8px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,outline:"none"}}/>
+          </div>
+          <label style={{fontSize:13,color:"#475569",display:"block",marginBottom:6}}>排序</label>
+          <select value={sort} onChange={e=>setSort(e.target.value)} style={{width:"100%",padding:"8px 12px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,outline:"none"}}>
+            <option value="latest">最新</option>
+            <option value="price-low">價格低到高</option>
+            <option value="price-high">價格高到低</option>
+          </select>
+        </aside>
+        <main style={{flex:1,minWidth:0}}>
+          <p style={{color:"#64748b",fontSize:14,marginBottom:16}}>找到 <strong>{filtered.length}</strong> 個結果</p>
+          {filtered.length===0
+            ? <div style={{textAlign:"center",padding:"60px 0",color:"#94a3b8"}}><p>找不到符合條件的商品</p></div>
+            : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:18}}>
+                {filtered.map(p=><ProductCard key={p.id} product={p} onClick={showProduct} onFavorite={toggleFav} isFav={favorites.has(p.id)}/>)}
+              </div>
+          }
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function ProductDetailPage({product, favorites, toggleFav, setPage, onContact}) {
+  if(!product) return null;
+  const isFav = favorites.has(product.id);
+  return (
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 20px"}}>
+      <div style={{fontSize:13,color:"#64748b",marginBottom:20}}>
+        <button onClick={()=>setPage("home")} style={{border:"none",background:"none",color:"#64748b",cursor:"pointer",padding:0}}>首頁</button>
+        <span style={{margin:"0 8px"}}>/</span>
+        <button onClick={()=>setPage("products")} style={{border:"none",background:"none",color:"#64748b",cursor:"pointer",padding:0}}>商品分類</button>
+        <span style={{margin:"0 8px"}}>/</span>
+        <span style={{color:"#1e293b"}}>{product.title}</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:28}}>
+        <div>
+          <div style={{borderRadius:18,overflow:"hidden",background:"#f1f5f9",marginBottom:24}}>
+            <img src={product.image} alt={product.title} style={{width:"100%",aspectRatio:"4/3",objectFit:"cover",display:"block"}}/>
+          </div>
+          <div style={{background:"#fff",borderRadius:18,padding:"28px",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+            <div style={{marginBottom:14}}><CategoryBadge cat={product.category}/></div>
+            <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:10}}>{product.title}</h1>
+            <div style={{fontSize:28,fontWeight:800,color:"#0ea5e9",marginBottom:18}}>NT$ {product.price}</div>
+            <h2 style={{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:10}}>商品描述</h2>
+            <p style={{color:"#475569",lineHeight:1.9}}>{product.description}</p>
+            <div style={{display:"flex",gap:12,marginTop:28}}>
+              <button onClick={()=>onContact()} style={{flex:1,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"13px 0",borderRadius:12,fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                <MessageCircleIcon/>聯絡賣家
+              </button>
+              <button onClick={()=>toggleFav(product.id)} style={{padding:"13px 24px",borderRadius:12,border:`2px solid ${isFav?"#ef4444":"#e2e8f0"}`,background:isFav?"#fef2f2":"#fff",color:isFav?"#ef4444":"#475569",cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+                <HeartIcon filled={isFav}/>{isFav?"已收藏":"加入典藏"}
+              </button>
+            </div>
+          </div>
+        </div>
+        <aside>
+          <div style={{background:"#fff",borderRadius:18,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+            <h3 style={{fontSize:16,fontWeight:700,color:"#1e293b",marginBottom:16}}>賣家資訊</h3>
+            <div style={{display:"flex",alignItems:"center",gap:12,paddingBottom:16,borderBottom:"1px solid #f1f5f9",marginBottom:16}}>
+              <Avatar name={product.seller} color="#0ea5e9" size={54}/>
+              <div>
+                <div style={{fontWeight:700,color:"#1e293b"}}>{product.seller}</div>
+                <div style={{fontSize:13,color:"#64748b"}}>{product.dept}</div>
+              </div>
+            </div>
+            <div style={{marginTop:16,background:"#fffbeb",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#b45309",marginBottom:6}}>交易安全提醒</div>
+              <ul style={{fontSize:12,color:"#92400e",paddingLeft:16,lineHeight:1.8}}>
+                <li>建議面交驗貨</li>
+                <li>使用校園安全地點</li>
+                <li>確認商品無誤再付款</li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function JobListPage() {
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("all");
+  const typeColor = {"校內工讀":["#1d4ed8","#dbeafe"],"校外兼職":["#c2410c","#ffedd5"],"實習機會":["#15803d","#dcfce7"]};
+  const filtered = JOBS.filter(j=>{
+    if(type!=="all"&&j.type!==type) return false;
+    if(search&&!j.title.includes(search)&&!j.description.includes(search)) return false;
+    return true;
+  });
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>打工資訊</h1>
+      <p style={{color:"#64748b",marginBottom:24}}>校內外工讀、兼職機會</p>
+      <div style={{display:"flex",gap:12,marginBottom:28,flexWrap:"wrap"}}>
+        <div style={{position:"relative",flex:1,minWidth:200}}>
+          <div style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"#94a3b8"}}><SearchIcon/></div>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋工作..."
+            style={{width:"100%",padding:"10px 10px 10px 40px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        {["all","校內工讀","校外兼職","實習機會"].map(t=>(
+          <button key={t} onClick={()=>setType(t)}
+            style={{padding:"10px 16px",borderRadius:10,border:`1.5px solid ${type===t?"#0ea5e9":"#e2e8f0"}`,background:type===t?"#e0f2fe":"#fff",color:type===t?"#0284c7":"#64748b",cursor:"pointer",fontWeight:600,fontSize:14}}>
+            {t==="all"?"全部":t}
+          </button>
+        ))}
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {filtered.map(j=>{
+          const [tc,bc]=typeColor[j.type]||["#374151","#f3f4f6"];
+          return (
+            <div key={j.id} style={{background:"#fff",borderRadius:16,padding:"22px 24px",boxShadow:"0 2px 10px rgba(0,0,0,.06)",display:"flex",flexWrap:"wrap",gap:16,alignItems:"flex-start"}}>
+              <div style={{flex:1,minWidth:220}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                  <Badge color={tc} bg={bc}>{j.type}</Badge>
+                  <span style={{fontSize:12,color:"#94a3b8"}}>{j.date}</span>
+                </div>
+                <h3 style={{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:8}}>{j.title}</h3>
+                <p style={{fontSize:13,color:"#64748b",marginBottom:12,lineHeight:1.6}}>{j.description}</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:12,fontSize:13,color:"#475569"}}>
+                  <span style={{display:"flex",gap:4,alignItems:"center"}}><MapPinIcon/>{j.location}</span>
+                  <span style={{display:"flex",gap:4,alignItems:"center"}}><DollarIcon/>{j.salary}</span>
+                  <span style={{display:"flex",gap:4,alignItems:"center"}}><ClockIcon/>{j.hours}</span>
+                </div>
+              </div>
+              <div style={{background:"#f8fafc",borderRadius:12,padding:"14px 16px",minWidth:180}}>
+                <div style={{fontSize:12,color:"#94a3b8",marginBottom:4}}>聯絡方式</div>
+                <div style={{fontSize:14,color:"#1e293b",fontWeight:600}}>{j.contact}</div>
+                <div style={{fontSize:12,color:"#64748b",marginTop:6}}>發布者：{j.poster}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CourseListPage() {
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("all");
+  const filtered = COURSES.filter(c=>{
+    if(type!=="all"&&c.type!==type) return false;
+    if(search&&!c.title.includes(search)&&!c.courseName.includes(search)) return false;
+    return true;
+  });
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>換課資訊</h1>
+      <p style={{color:"#64748b",marginBottom:24}}>課程時段交換需求</p>
+      <div style={{display:"flex",gap:12,marginBottom:28,flexWrap:"wrap"}}>
+        <div style={{position:"relative",flex:1,minWidth:200}}>
+          <div style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"#94a3b8"}}><SearchIcon/></div>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋課程..."
+            style={{width:"100%",padding:"10px 10px 10px 40px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        {["all","必修課程","選修課程"].map(t=>(
+          <button key={t} onClick={()=>setType(t)}
+            style={{padding:"10px 16px",borderRadius:10,border:`1.5px solid ${type===t?"#22c55e":"#e2e8f0"}`,background:type===t?"#dcfce7":"#fff",color:type===t?"#16a34a":"#64748b",cursor:"pointer",fontWeight:600,fontSize:14}}>
+            {t==="all"?"全部":t}
+          </button>
+        ))}
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {filtered.map(c=>(
+          <div key={c.id} style={{background:"#fff",borderRadius:16,padding:"22px 24px",boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+              <Badge color={c.type==="必修課程"?"#1d4ed8":"#7c3aed"} bg={c.type==="必修課程"?"#dbeafe":"#ede9fe"}>{c.type}</Badge>
+              <Badge color="#15803d" bg="#dcfce7">{c.courseName}</Badge>
+              <span style={{marginLeft:"auto",fontSize:12,color:"#94a3b8"}}>{c.date}</span>
+            </div>
+            <h3 style={{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:12}}>{c.title}</h3>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,background:"#f8fafc",borderRadius:10,padding:"14px 16px",marginBottom:12}}>
+              <div>
+                <div style={{fontSize:12,color:"#94a3b8",marginBottom:3}}>現在時段</div>
+                <div style={{fontSize:14,fontWeight:600,color:"#1e293b"}}>{c.currentTime}</div>
+              </div>
+              <div>
+                <div style={{fontSize:12,color:"#94a3b8",marginBottom:3}}>希望換到</div>
+                <div style={{fontSize:14,fontWeight:600,color:"#0284c7"}}>{c.desiredTime}</div>
+              </div>
+            </div>
+            <p style={{fontSize:13,color:"#64748b",marginBottom:12}}>原因：{c.reason}</p>
+            <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,fontSize:13}}>
+              <span style={{display:"flex",gap:6,alignItems:"center",color:"#475569"}}><UserIcon/>{c.poster}（{c.department}）</span>
+              <span style={{color:"#0284c7",fontWeight:600}}>聯絡：{c.contact}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CreatePostPage({setPage, isLoggedIn}) {
+  const [form, setForm] = useState({type:"product",title:"",category:"",price:"",description:"",contact:""});
+  const [img, setImg] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const handleImg = e => {
+    const f = e.target.files && e.target.files[0];
+    if(f) {
+      const r = new FileReader();
+      r.onloadend = () => setImg(r.result);
+      r.readAsDataURL(f);
+    }
+  };
+  const handleSubmit = e => { e.preventDefault(); setSubmitted(true); };
+  if(!isLoggedIn) return (
+    <div style={{maxWidth:500,margin:"80px auto",textAlign:"center",padding:"0 20px"}}>
+      <div style={{fontSize:60,marginBottom:16}}>🔒</div>
+      <h2 style={{fontSize:22,fontWeight:800,color:"#1e293b",marginBottom:10}}>請先登入</h2>
+      <p style={{color:"#64748b",marginBottom:24}}>發布貼文需要登入帳號</p>
+      <button onClick={()=>setPage("login")} style={{background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"13px 32px",borderRadius:12,cursor:"pointer",fontWeight:700,fontSize:16}}>立即登入</button>
+    </div>
+  );
+  if(submitted) return (
+    <div style={{maxWidth:500,margin:"80px auto",textAlign:"center",padding:"0 20px"}}>
+      <div style={{fontSize:60,marginBottom:16}}>🎉</div>
+      <h2 style={{fontSize:22,fontWeight:800,color:"#1e293b",marginBottom:10}}>貼文發布成功！</h2>
+      <p style={{color:"#64748b",marginBottom:24}}>你的貼文已成功發布，等待買家聯絡。</p>
+      <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+        <button onClick={()=>setPage("products")} style={{background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"12px 24px",borderRadius:10,cursor:"pointer",fontWeight:700}}>瀏覽商品</button>
+        <button onClick={()=>{setForm({type:"product",title:"",category:"",price:"",description:"",contact:""});setImg(null);setSubmitted(false);}}
+          style={{background:"#f1f5f9",color:"#475569",border:"none",padding:"12px 24px",borderRadius:10,cursor:"pointer",fontWeight:600}}>再發一篇</button>
+      </div>
+    </div>
+  );
+  const catOptions = form.type==="product"?["書籍","彩妝","衣服","生活用品"]:form.type==="job"?["校內工讀","校外兼職","實習機會"]:["必修課程","選修課程"];
+  return (
+    <div style={{maxWidth:680,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>發布貼文</h1>
+      <p style={{color:"#64748b",marginBottom:28}}>分享你的商品、打工資訊或換課需求</p>
+      <form onSubmit={handleSubmit} style={{background:"#fff",borderRadius:18,padding:"32px 28px",boxShadow:"0 2px 14px rgba(0,0,0,.07)"}}>
+        <div style={{marginBottom:22}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:8}}>貼文類型 *</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            {[["product","商品販售"],["job","打工資訊"],["course","換課資訊"]].map(([v,l])=>(
+              <button type="button" key={v} onClick={()=>setForm({...form,type:v,category:""})}
+                style={{padding:"12px 0",borderRadius:10,border:`2px solid ${form.type===v?"#0ea5e9":"#e2e8f0"}`,background:form.type===v?"#e0f2fe":"#fff",color:form.type===v?"#0284c7":"#475569",fontWeight:600,cursor:"pointer",fontSize:14}}>
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>標題 *</label>
+          <input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="請輸入標題"
+            style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>類別 *</label>
+          <select required value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+            style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none"}}>
+            <option value="">請選擇類別</option>
+            {catOptions.map(o=><option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        {form.type==="product" && (
+          <div style={{marginBottom:18}}>
+            <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>價格 (NT$) *</label>
+            <input required type="number" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} placeholder="請輸入價格"
+              style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+          </div>
+        )}
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>詳細描述 *</label>
+          <textarea required value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
+            placeholder="請詳細描述商品狀況..." rows={5}
+            style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",resize:"vertical",boxSizing:"border-box"}}/>
+        </div>
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>上傳圖片</label>
+          {img ? (
+            <div style={{position:"relative"}}>
+              <img src={img} alt="preview" style={{width:"100%",height:200,objectFit:"cover",borderRadius:10}}/>
+              <button type="button" onClick={()=>setImg(null)}
+                style={{position:"absolute",top:10,right:10,width:30,height:30,borderRadius:"50%",background:"#ef4444",border:"none",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <XIcon/>
+              </button>
+            </div>
+          ) : (
+            <label style={{display:"block",border:"2px dashed #e2e8f0",borderRadius:12,padding:"32px",textAlign:"center",cursor:"pointer"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor="#0ea5e9"}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="#e2e8f0"}>
+              <input type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
+              <div style={{color:"#94a3b8",margin:"0 auto 8px",width:40,height:40}}><UploadIcon/></div>
+              <p style={{color:"#64748b",fontSize:14}}>點擊上傳圖片</p>
+              <p style={{color:"#94a3b8",fontSize:12,marginTop:4}}>支援 JPG、PNG 格式</p>
+            </label>
+          )}
+        </div>
+        <div style={{marginBottom:24}}>
+          <label style={{fontSize:14,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>聯絡方式 *</label>
+          <input required value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})}
+            placeholder="例如：Email、手機號碼、Line ID"
+            style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        <div style={{display:"flex",gap:12}}>
+          <button type="submit" style={{flex:1,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"13px 0",borderRadius:12,fontWeight:700,fontSize:15,cursor:"pointer"}}>發布貼文</button>
+          <button type="button" onClick={()=>setForm({type:"product",title:"",category:"",price:"",description:"",contact:""})}
+            style={{padding:"13px 24px",borderRadius:12,border:"1.5px solid #e2e8f0",background:"#fff",color:"#475569",cursor:"pointer",fontWeight:600}}>重設</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ChatPage() {
+  const [chats, setChats] = useState(CHATS_INIT);
+  const [selected, setSelected] = useState("1");
+  const [msg, setMsg] = useState("");
+  const messagesEndRef = useRef(null);
+  const currentChat = chats.find(c=>c.id===selected);
+  const sendMsg = e => {
+    e.preventDefault();
+    if(!msg.trim()) return;
+    const newMsg = {id:"m"+Date.now(),sender:"me",text:msg,time:new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})};
+    setChats(cs=>cs.map(c=>c.id===selected?{...c,messages:[...c.messages,newMsg],lastMessage:msg,unread:0}:c));
+    setMsg("");
+  };
+  useEffect(()=>{messagesEndRef.current&&messagesEndRef.current.scrollIntoView({behavior:"smooth"});},[currentChat&&currentChat.messages&&currentChat.messages.length]);
+  return (
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>聊天室</h1>
+      <p style={{color:"#64748b",marginBottom:20}}>與賣家私訊聊天</p>
+      <div style={{background:"#fff",borderRadius:18,boxShadow:"0 2px 14px rgba(0,0,0,.07)",overflow:"hidden",display:"grid",gridTemplateColumns:"280px 1fr",height:520}}>
+        <div style={{borderRight:"1px solid #f1f5f9",display:"flex",flexDirection:"column",overflowY:"auto"}}>
+          {chats.map(c=>(
+            <button key={c.id} onClick={()=>{setSelected(c.id);setChats(cs=>cs.map(x=>x.id===c.id?{...x,unread:0}:x));}}
+              style={{width:"100%",padding:"14px 16px",border:"none",background:selected===c.id?"#f0f9ff":"#fff",cursor:"pointer",textAlign:"left",borderBottom:"1px solid #f8fafc",display:"flex",gap:10,alignItems:"center"}}>
+              <Avatar name={c.name} color={c.color} size={42}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                  <span style={{fontWeight:600,fontSize:14,color:"#1e293b"}}>{c.name}</span>
+                  <span style={{fontSize:11,color:"#94a3b8"}}>{c.time}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <p style={{fontSize:12,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:120}}>{c.lastMessage}</p>
+                  {c.unread>0&&<span style={{minWidth:18,height:18,background:"#ef4444",color:"#fff",borderRadius:99,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 5px"}}>{c.unread}</span>}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <div style={{display:"flex",flexDirection:"column"}}>
+          <div style={{padding:"14px 20px",borderBottom:"1px solid #f1f5f9",display:"flex",alignItems:"center",gap:12}}>
+            <Avatar name={currentChat&&currentChat.name} color={currentChat&&currentChat.color} size={38}/>
+            <div>
+              <div style={{fontWeight:600,color:"#1e293b"}}>{currentChat&&currentChat.name}</div>
+              <div style={{fontSize:12,color:"#22c55e"}}>● 線上</div>
+            </div>
+          </div>
+          <div style={{flex:1,overflowY:"auto",padding:"20px",display:"flex",flexDirection:"column",gap:12}}>
+            {currentChat&&currentChat.messages.map(m=>(
+              <div key={m.id} style={{display:"flex",justifyContent:m.sender==="me"?"flex-end":"flex-start"}}>
+                <div style={{maxWidth:"65%"}}>
+                  <div style={{padding:"10px 14px",borderRadius:m.sender==="me"?"16px 16px 4px 16px":"16px 16px 16px 4px",background:m.sender==="me"?"linear-gradient(135deg,#0ea5e9,#0284c7)":"#f1f5f9",color:m.sender==="me"?"#fff":"#1e293b",fontSize:14,lineHeight:1.5}}>
+                    {m.text}
+                  </div>
+                  <div style={{fontSize:11,color:"#94a3b8",marginTop:4,textAlign:m.sender==="me"?"right":"left"}}>{m.time}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef}/>
+          </div>
+          <form onSubmit={sendMsg} style={{padding:"14px 20px",borderTop:"1px solid #f1f5f9",display:"flex",gap:10}}>
+            <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="輸入訊息..."
+              style={{flex:1,padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none"}}/>
+            <button type="submit" style={{background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"0 20px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
+              <SendIcon/>傳送
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GroupChatPage() {
+  const [msgs, setMsgs] = useState(GROUP_MSGS_INIT);
+  const [msg, setMsg] = useState("");
+  const endRef = useRef(null);
+  const send = e => {
+    e.preventDefault();
+    if(!msg.trim()) return;
+    setMsgs(m=>[...m,{id:"g"+Date.now(),sender:"我",color:"#0ea5e9",text:msg,time:new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"}),isMe:true}]);
+    setMsg("");
+  };
+  useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({behavior:"smooth"});},[msgs.length]);
+  return (
+    <div style={{maxWidth:800,margin:"0 auto",padding:"32px 20px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+        <div style={{width:42,height:42,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff"}}><UsersIcon/></div>
+        <div>
+          <h1 style={{fontSize:20,fontWeight:800,color:"#1e293b",margin:0}}>北護學生大群</h1>
+          <p style={{color:"#64748b",fontSize:13,margin:0}}>全校學生公開聊天室</p>
+        </div>
+      </div>
+      <div style={{background:"#fff",borderRadius:18,boxShadow:"0 2px 14px rgba(0,0,0,.07)",overflow:"hidden",display:"flex",flexDirection:"column",height:520}}>
+        <div style={{flex:1,overflowY:"auto",padding:"20px",display:"flex",flexDirection:"column",gap:14}}>
+          {msgs.map(m=>(
+            <div key={m.id} style={{display:"flex",justifyContent:m.isMe?"flex-end":"flex-start",gap:8,alignItems:"flex-end"}}>
+              {!m.isMe&&<Avatar name={m.sender} color={m.color} size={32}/>}
+              <div style={{maxWidth:"60%"}}>
+                {!m.isMe&&<div style={{fontSize:12,color:"#64748b",marginBottom:4,marginLeft:4}}>{m.sender}</div>}
+                <div style={{padding:"10px 14px",borderRadius:m.isMe?"16px 16px 4px 16px":"16px 16px 16px 4px",background:m.isMe?"linear-gradient(135deg,#0ea5e9,#0284c7)":"#f1f5f9",color:m.isMe?"#fff":"#1e293b",fontSize:14,lineHeight:1.5}}>
+                  {m.text}
+                </div>
+                <div style={{fontSize:11,color:"#94a3b8",marginTop:3,textAlign:m.isMe?"right":"left"}}>{m.time}</div>
+              </div>
+              {m.isMe&&<Avatar name={m.sender} color={m.color} size={32}/>}
+            </div>
+          ))}
+          <div ref={endRef}/>
+        </div>
+        <form onSubmit={send} style={{padding:"14px 20px",borderTop:"1px solid #f1f5f9",display:"flex",gap:10}}>
+          <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="輸入訊息，與全校同學交流..."
+            style={{flex:1,padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none"}}/>
+          <button type="submit" style={{background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"0 20px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
+            <SendIcon/>傳送
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function VisualSearchPage({products, favorites, toggleFav, showProduct}) {
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState(null);
+  const handleImg = e => {
+    const f = e.target.files && e.target.files[0];
+    if(f) {
+      const r = new FileReader();
+      r.onloadend = () => { setUploadedImage(r.result); setResults(null); };
+      r.readAsDataURL(f);
+    }
+  };
+  const doSearch = () => {
+    setSearching(true);
+    setTimeout(()=>{ setSearching(false); setResults(products.slice(0,3)); }, 1500);
+  };
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>以圖搜圖</h1>
+        <p style={{color:"#64748b"}}>上傳圖片，快速找到相似商品</p>
+      </div>
+      <div style={{background:"#fff",borderRadius:18,padding:"32px",boxShadow:"0 2px 14px rgba(0,0,0,.07)",marginBottom:28}}>
+        {!uploadedImage ? (
+          <label style={{display:"block",border:"2px dashed #e2e8f0",borderRadius:14,padding:"48px 32px",textAlign:"center",cursor:"pointer"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="#0ea5e9"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor="#e2e8f0"}>
+            <input type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
+            <div style={{color:"#94a3b8",width:48,height:48,margin:"0 auto 16px"}}><ImageIcon/></div>
+            <p style={{color:"#1e293b",fontWeight:600,fontSize:16,marginBottom:6}}>點擊或拖曳圖片到這裡</p>
+            <p style={{color:"#94a3b8",fontSize:13}}>支援 JPG、PNG 格式</p>
+          </label>
+        ) : (
+          <div style={{textAlign:"center"}}>
+            <div style={{position:"relative",display:"inline-block",marginBottom:20}}>
+              <img src={uploadedImage} alt="uploaded" style={{maxHeight:280,borderRadius:12,objectFit:"cover"}}/>
+              <button onClick={()=>{setUploadedImage(null);setResults(null);}}
+                style={{position:"absolute",top:8,right:8,width:28,height:28,borderRadius:"50%",background:"#ef4444",border:"none",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <XIcon/>
+              </button>
+            </div>
+            <br/>
+            <button onClick={doSearch} disabled={searching}
+              style={{background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"12px 32px",borderRadius:12,fontWeight:700,cursor:searching?"wait":"pointer",fontSize:15,display:"inline-flex",alignItems:"center",gap:8}}>
+              {searching ? "搜尋中..." : "開始搜尋"}
+            </button>
+          </div>
+        )}
+      </div>
+      {results && (
+        <div>
+          <h2 style={{fontSize:18,fontWeight:700,color:"#1e293b",marginBottom:16}}>搜尋結果（{results.length} 件相似商品）</h2>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:18}}>
+            {results.map(p=><ProductCard key={p.id} product={p} onClick={showProduct} onFavorite={toggleFav} isFav={favorites.has(p.id)}/>)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoginPage({setPage, setIsLoggedIn}) {
+  const [form, setForm] = useState({studentId:"",password:""});
+  const submit = e => { e.preventDefault(); setIsLoggedIn(true); setPage("home"); };
+  return (
+    <div style={{minHeight:"60vh",background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)",display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 20px"}}>
+      <div style={{maxWidth:420,width:"100%"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:72,height:72,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+            <span style={{color:"#fff",fontSize:32,fontWeight:800}}>北</span>
+          </div>
+          <h1 style={{fontSize:24,fontWeight:800,color:"#1e293b",marginBottom:4}}>北護小物販賣網站</h1>
+          <p style={{color:"#64748b"}}>限北護學生使用</p>
+        </div>
+        <div style={{background:"#fff",borderRadius:18,padding:"32px 28px",boxShadow:"0 4px 24px rgba(0,0,0,.09)"}}>
+          <form onSubmit={submit}>
+            <div style={{marginBottom:16}}>
+              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>學號 *</label>
+              <input required value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})} placeholder="請輸入學號"
+                style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+            </div>
+            <div style={{marginBottom:16}}>
+              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>密碼 *</label>
+              <input required type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder="請輸入密碼"
+                style={{width:"100%",padding:"11px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+            </div>
+            <button type="submit" style={{width:"100%",background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"13px 0",borderRadius:12,fontWeight:700,fontSize:15,cursor:"pointer",marginBottom:14}}>登入</button>
+            <p style={{textAlign:"center",fontSize:13,color:"#64748b"}}>還沒有帳號？
+              <button type="button" onClick={()=>setPage("register")} style={{border:"none",background:"none",color:"#0ea5e9",cursor:"pointer",fontWeight:600}}>立即註冊</button>
+            </p>
+          </form>
+        </div>
+        <div style={{marginTop:16,background:"#dbeafe",borderRadius:10,padding:"12px 16px",textAlign:"center",fontSize:13,color:"#1d4ed8",lineHeight:1.7}}>
+          本平台僅限北護大學學生使用<br/>請使用學號進行註冊
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegisterPage({setPage, setIsLoggedIn}) {
+  const [form, setForm] = useState({name:"",studentId:"",email:"",password:"",confirm:""});
+  const [err, setErr] = useState("");
+  const submit = e => {
+    e.preventDefault();
+    if(form.password!==form.confirm){setErr("密碼不一致，請重新確認！");return;}
+    setIsLoggedIn(true);
+    setPage("home");
+  };
+  const fields = [{key:"name",label:"姓名",type:"text"},{key:"studentId",label:"學號",type:"text"},{key:"email",label:"Email（學校信箱）",type:"email"},{key:"password",label:"密碼",type:"password"},{key:"confirm",label:"確認密碼",type:"password"}];
+  return (
+    <div style={{minHeight:"60vh",background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)",display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 20px"}}>
+      <div style={{maxWidth:420,width:"100%"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:72,height:72,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+            <span style={{color:"#fff",fontSize:32,fontWeight:800}}>北</span>
+          </div>
+          <h1 style={{fontSize:24,fontWeight:800,color:"#1e293b",marginBottom:4}}>北護小物販賣網站</h1>
+          <p style={{color:"#64748b"}}>建立新帳號</p>
+        </div>
+        <div style={{background:"#fff",borderRadius:18,padding:"32px 28px",boxShadow:"0 4px 24px rgba(0,0,0,.09)"}}>
+          <form onSubmit={submit}>
+            {fields.map(f=>(
+              <div key={f.key} style={{marginBottom:14}}>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:5}}>{f.label} *</label>
+                <input required type={f.type} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}
+                  placeholder={"請輸入"+f.label}
+                  style={{width:"100%",padding:"10px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+              </div>
+            ))}
+            {err&&<p style={{color:"#ef4444",fontSize:13,marginBottom:12}}>{err}</p>}
+            <label style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:20,cursor:"pointer",fontSize:13,color:"#475569"}}>
+              <input type="checkbox" required style={{marginTop:2}}/>
+              我同意使用條款與隱私政策，並確認為北護大學在學學生
+            </label>
+            <button type="submit" style={{width:"100%",background:"linear-gradient(135deg,#0ea5e9,#0284c7)",color:"#fff",border:"none",padding:"13px 0",borderRadius:12,fontWeight:700,fontSize:15,cursor:"pointer",marginBottom:14}}>註冊</button>
+            <p style={{textAlign:"center",fontSize:13,color:"#64748b"}}>已有帳號？
+              <button type="button" onClick={()=>setPage("login")} style={{border:"none",background:"none",color:"#0ea5e9",cursor:"pointer",fontWeight:600}}>立即登入</button>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePage({setIsLoggedIn, setPage, favorites, products}) {
+  const [tab, setTab] = useState("posts");
+  const user = {name:"王小明",studentId:"11012345",email:"student001@ntunhs.edu.tw",department:"護理系"};
+  const myPosts = [
+    {id:"1",title:"護理學原理 第八版",category:"書籍",price:350,status:"active",date:"2天前",views:48},
+    {id:"2",title:"解剖學講義",category:"書籍",price:250,status:"sold",date:"1週前",views:35},
+    {id:"3",title:"實習用白色襯衫",category:"衣服",price:200,status:"inactive",date:"2週前",views:22},
+  ];
+  const statusMap = {active:{label:"上架中",color:"#16a34a",bg:"#dcfce7"},sold:{label:"已售出",color:"#374151",bg:"#f3f4f6"},inactive:{label:"已下架",color:"#dc2626",bg:"#fee2e2"}};
+  const favProducts = products.filter(p=>favorites.has(p.id));
+  return (
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 20px"}}>
+      <h1 style={{fontSize:26,fontWeight:800,color:"#1e293b",marginBottom:6}}>會員中心</h1>
+      <p style={{color:"#64748b",marginBottom:28}}>管理您的個人資料與貼文</p>
+      <div style={{display:"grid",gridTemplateColumns:"280px 1fr",gap:24,alignItems:"start"}}>
+        <div style={{background:"#fff",borderRadius:18,padding:"28px 24px",boxShadow:"0 2px 12px rgba(0,0,0,.07)"}}>
+          <div style={{textAlign:"center",marginBottom:20}}>
+            <Avatar name={user.name} color="#0ea5e9" size={80}/>
+            <h2 style={{fontSize:18,fontWeight:700,color:"#1e293b",marginTop:12,marginBottom:4}}>{user.name}</h2>
+            <p style={{fontSize:13,color:"#64748b"}}>{user.department}</p>
+          </div>
+          <div style={{borderTop:"1px solid #f1f5f9",paddingTop:16,fontSize:13,color:"#475569",display:"flex",flexDirection:"column",gap:10}}>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}><UserIcon/>{user.studentId}</div>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}><MailIcon/>{user.email}</div>
+          </div>
+          <button onClick={()=>{setIsLoggedIn(false);setPage("home");}}
+            style={{width:"100%",marginTop:20,background:"#fee2e2",color:"#dc2626",border:"none",padding:"11px 0",borderRadius:10,cursor:"pointer",fontWeight:600,fontSize:14}}>
+            登出
+          </button>
+        </div>
+        <div>
+          <div style={{display:"flex",gap:4,marginBottom:20,background:"#f8fafc",borderRadius:12,padding:4}}>
+            {[["posts","我的貼文"],["favorites","典藏商品"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setTab(v)}
+                style={{flex:1,padding:"10px 0",border:"none",borderRadius:10,background:tab===v?"#fff":"transparent",color:tab===v?"#0ea5e9":"#64748b",fontWeight:700,cursor:"pointer",fontSize:14,boxShadow:tab===v?"0 2px 8px rgba(0,0,0,.06)":undefined}}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {tab==="posts" && (
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              {myPosts.map(p=>{
+                const s=statusMap[p.status];
+                return (
+                  <div key={p.id} style={{background:"#fff",borderRadius:14,padding:"18px 20px",boxShadow:"0 2px 10px rgba(0,0,0,.05)",display:"flex",alignItems:"center",gap:16}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:8}}>
+                        <CategoryBadge cat={p.category}/>
+                        <span style={{padding:"2px 8px",borderRadius:99,background:s.bg,color:s.color,fontSize:12,fontWeight:600}}>{s.label}</span>
+                      </div>
+                      <h3 style={{fontSize:15,fontWeight:700,color:"#1e293b",marginBottom:4}}>{p.title}</h3>
+                      <div style={{fontSize:13,color:"#64748b"}}>NT$ {p.price} · {p.date} · 瀏覽 {p.views} 次</div>
+                    </div>
+                    <div style={{display:"flex",gap:8}}>
+                      <button style={{padding:"7px 12px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",color:"#0ea5e9"}}><EditIcon/></button>
+                      <button style={{padding:"7px 12px",borderRadius:8,border:"1px solid #fee2e2",background:"#fff",cursor:"pointer",color:"#dc2626"}}><Trash2Icon/></button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {tab==="favorites" && (
+            favProducts.length===0
+              ? <div style={{textAlign:"center",padding:"48px 0",color:"#94a3b8"}}>
+                  <div style={{fontSize:48,marginBottom:12}}>🤍</div>
+                  <p>還沒有典藏商品</p>
+                </div>
+              : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
+                  {favProducts.map(p=>(
+                    <div key={p.id} style={{background:"#fff",borderRadius:14,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,.05)"}}>
+                      <img src={p.image} alt={p.title} style={{width:"100%",height:120,objectFit:"cover"}}/>
+                      <div style={{padding:"12px 14px"}}>
+                        <p style={{fontSize:13,fontWeight:600,color:"#1e293b",marginBottom:4}}>{p.title}</p>
+                        <p style={{fontSize:14,fontWeight:700,color:"#0ea5e9"}}>NT$ {p.price}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [page, setPage] = useState("home");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [products] = useState(PRODUCTS);
+  const [favorites, setFavorites] = useState(new Set());
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const toggleFav = id => setFavorites(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
+  const showProduct = product => {setSelectedProduct(product);setPage("product-detail");};
+  const goChat = () => {if(isLoggedIn)setPage("chat");else setPage("login");};
+  const noLayout = page==="login"||page==="register";
+
+  const renderPage = () => {
+    switch(page) {
+      case "home": return <HomePage setPage={setPage} products={products} favorites={favorites} toggleFav={toggleFav} showProduct={showProduct}/>;
+      case "products": return <ProductListPage products={products} favorites={favorites} toggleFav={toggleFav} showProduct={showProduct}/>;
+      case "jobs": return <JobListPage/>;
+      case "courses": return <CourseListPage/>;
+      case "create": return <CreatePostPage setPage={setPage} isLoggedIn={isLoggedIn}/>;
+      case "chat": return <ChatPage/>;
+      case "group-chat": return <GroupChatPage/>;
+      case "visual-search": return <VisualSearchPage products={products} favorites={favorites} toggleFav={toggleFav} showProduct={showProduct}/>;
+      case "product-detail": return <ProductDetailPage product={selectedProduct} favorites={favorites} toggleFav={toggleFav} setPage={setPage} onContact={goChat}/>;
+      case "profile": return <ProfilePage setIsLoggedIn={setIsLoggedIn} setPage={setPage} favorites={favorites} products={products}/>;
+      case "login": return <LoginPage setPage={setPage} setIsLoggedIn={setIsLoggedIn}/>;
+      case "register": return <RegisterPage setPage={setPage} setIsLoggedIn={setIsLoggedIn}/>;
+      default: return <HomePage setPage={setPage} products={products} favorites={favorites} toggleFav={toggleFav} showProduct={showProduct}/>;
+    }
+  };
+
+  return (
+    <div style={{minHeight:"100vh",background:"#f8fafc"}}>
+      {!noLayout && <Navbar page={page} setPage={setPage} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>}
+      <div>{renderPage()}</div>
+      {!noLayout && <Footer setPage={setPage}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+</body>
+</html>
